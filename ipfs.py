@@ -20,13 +20,8 @@ def pin_to_ipfs(data):
 def get_from_ipfs(cid,content_type="json"):
 	assert isinstance(cid,str), f"get_from_ipfs accepts a cid in the form of a string"
 	#YOUR CODE HERE	
-
+	url = f"https://gateway.pinata.cloud/ipfs/{cid}"
+	response = requests.get(url, timeout=60)
+	data = response.json()
 	assert isinstance(data,dict), f"get_from_ipfs should return a dict"
 	return data
-
-if __name__ == "__main__":
-	sample = {"class": "EAS5830", "msg": "Testing IPFS"}
-	cid = pin_to_ipfs(sample)
-	print("✅ Pinned CID:", cid)
-	data = get_from_ipfs(cid)
-	print("Fetched back:", data)
