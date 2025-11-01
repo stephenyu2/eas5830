@@ -39,8 +39,10 @@ def get_ape_info(ape_id):
     # YOUR CODE HERE
     bayc_contract = web3.eth.contract(address = contract_address, abi = abi)
     data['owner'] = bayc_contract.functions.ownerOf(ape_id).call()
-    data['image'] = bayc_contract.functions.tokenURI(ape_id).call()
-    bayc_data = get_from_ipfs(data['image'])
+    bayc_uri = bayc_contract.functions.tokenURI(ape_id).call()
+    bayc_cid = bayc_uri.replace("ipfs://", "")
+    bayc_data = get_from_ipfs(bayc_cid)
+    data['image'] = bayc_data['image']
     data['eyes'] = next((a["value"] for a in bayc_data["attributes"] if a["trait_type"] == "Eyes"), None)
 
 
