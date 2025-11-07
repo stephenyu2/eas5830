@@ -1,0 +1,19 @@
+# Ignore environment files with private keys
+.env
+
+# Ignore Python virtual environments
+venv/
+.venv/
+
+# Ignore Python cache files
+__pycache__/
+*.pyc
+
+# Ignore IDE or system files
+.DS_Store
+.idea/
+.vscode/
+
+mintNFT.py
+
+nft_contract.json
