@@ -27,7 +27,7 @@ def mine_block(k, prev_hash, transactions):
         for line in transactions:
             m.update(line.encode('utf-8'))
         nonce = str(nonce_int).encode('utf-8')
-        m.update(str(nonce_int).encode('utf-8'))
+        m.update(nonce.encode('utf-8'))
         digest = m.digest()
         digest_int = int.from_bytes(digest, byteorder='big')
         if (digest_int & check) == 0:
