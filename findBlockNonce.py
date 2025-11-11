@@ -20,7 +20,7 @@ def mine_block(k, prev_hash, transactions):
 
     # TODO your code to find a nonce here
     check = (1 << k) - 1
-    nonce_int = 1; 
+    nonce_int = 0; 
     while True: 
         m = hashlib.sha256()
         m.update(prev_hash)
