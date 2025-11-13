@@ -48,11 +48,19 @@ def generate_primes(num_primes):
     primes_list = []
 
     #TODO YOUR CODE HERE
-    i = 1
+    candidate = 2
+
     while len(primes_list) < num_primes:
-        if isprime(i):
-            primes_list.append(i)
-        i += 1
+        is_prime = True
+        for p in primes_list:
+            if p * p > candidate:
+                break
+            if candidate % p == 0:
+                is_prime = False
+                break
+        if is_prime:
+            primes_list.append(candidate)
+        candidate += 1
 
     return primes_list
 
