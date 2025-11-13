@@ -24,11 +24,10 @@ contract Attacker is AccessControl, IERC777Recipient {
         _erc1820.setInterfaceImplementer(address(this),TOKENS_RECIPIENT_INTERFACE_HASH,address(this));
     }
 
-    function setTarget(address bank_address) external onlyRole(ATTACKER_ROLE) {
-        bank = Bank(bank_address);
-        _grantRole(ATTACKER_ROLE, address(this));
-        _grantRole(ATTACKER_ROLE, bank.token().address );
-    }
+function setTarget(address bank_address) external onlyRole(ATTACKER_ROLE) {
+    bank = Bank(bank_address);
+    _grantRole(ATTACKER_ROLE, address(this));
+}
 
     /*
        The main attack function that should start the reentrancy attack
