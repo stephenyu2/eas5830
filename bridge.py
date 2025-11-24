@@ -49,8 +49,8 @@ def scan_blocks(chain, contract_info="contract_info.json"):
         print( f"Invalid chain: {chain}" )
         return 0
     
-    contracts = get_contract_info(chain, contract_info)
-    w3 = connect_to(chain)
+    with open(contract_info, "r") as f:
+        contracts = json.load(f)
 
     warden_address = Web3.to_checksum_address(contracts["warden"]["address"])
     warden_key = contracts["warden"]["private_key"]
