@@ -86,7 +86,7 @@ def scan_blocks(chain, contract_info="contract_info.json"):
                 "gasPrice": w3d.eth.gas_price
             })
             signed = w3d.eth.account.sign_transaction(tx, private_key=warden_key)
-            w3d.eth.send_raw_transaction(signed.rawTransaction)
+            w3d.eth.send_raw_transaction(signed.raw_transaction)
 
     if chain == "destination":
         w3d = connect_to("destination")
@@ -107,4 +107,4 @@ def scan_blocks(chain, contract_info="contract_info.json"):
                 "gasPrice": w3s.eth.gas_price
             })
             signed = w3s.eth.account.sign_transaction(tx, private_key=warden_key)
-            w3s.eth.send_raw_transaction(signed.rawTransaction)
+            w3s.eth.send_raw_transaction(signed.raw_transaction)
