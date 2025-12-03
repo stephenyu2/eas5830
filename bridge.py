@@ -5,14 +5,15 @@ import json
 
 
 def connect_to(chain):
-    if chain == 'source':  # The source contract chain is avax
+    if chain == "source":  # The source contract chain is avax
         api_url = "https://api.avax-test.network/ext/bc/C/rpc"  # AVAX C-chain testnet
-    elif chain == 'destination':  # The destination contract chain is bsc
+    elif chain == "destination":  # The destination contract chain is bsc
         api_url = "https://data-seed-prebsc-1-s1.binance.org:8545/"  # BSC testnet
     else:
         raise ValueError(f"Invalid chain: {chain}")
 
     w3 = Web3(Web3.HTTPProvider(api_url))
+    # Necessary for POA chains (both these testnets)
     w3.middleware_onion.inject(ExtraDataToPOAMiddleware, layer=0)
     return w3
 
@@ -20,20 +21,23 @@ def connect_to(chain):
 def scan_blocks(chain, contract_info="contract_info.json"):
     """
     chain - (string) should be either "source" or "destination"
-    Scan the last 5 blocks of the source and destination chains
-    Look for 'Deposit' events on the source chain and 'Unwrap' events on the destination chain
-    When Deposit events are found on the source chain, call the 'wrap' function on the destination chain
-    When Unwrap events are found on the destination chain, call the 'withdraw' function on the source chain
+
+    Scan recent blocks:
+      - For chain == "source": look for Deposit events on the source chain,
+        and call wrap() on the destination chain.
+      - For chain == "destination": look for Unwrap events on the destination
+        chain, and call withdraw() on the source chain.
     """
 
     if chain not in ["source", "destination"]:
         print(f"Invalid chain: {chain}")
         return 0
 
+    # Load contract info
     with open(contract_info, "r") as f:
         contracts = json.load(f)
 
-    # Derive warden address from private key to avoid mismatch
+    # Derive warden address from private key (avoid mismatch)
     warden_key = contracts["warden"]["private_key"]
     warden_acct = Account.from_key(warden_key)
     warden_address = warden_acct.address
@@ -41,6 +45,7 @@ def scan_blocks(chain, contract_info="contract_info.json"):
     source_info = contracts["source"]
     dest_info = contracts["destination"]
 
+    # Connect to both chains
     w3s = connect_to("source")
     w3d = connect_to("destination")
 
@@ -53,10 +58,12 @@ def scan_blocks(chain, contract_info="contract_info.json"):
         abi=dest_info["abi"],
     )
 
+    # How many blocks back to scan (20 is much safer than 5)
     if chain == "source":
         end_block = w3s.eth.get_block_number()
-        start_block = max(0, end_block - 5)
+        start_block = max(0, end_block - 20)
 
+        # Find Deposit events on the source chain
         event_filter = source_contract.events.Deposit.create_filter(
             from_block=start_block,
             to_block=end_block,
@@ -64,7 +71,7 @@ def scan_blocks(chain, contract_info="contract_info.json"):
         )
         events = event_filter.get_all_entries()
 
-        # Get starting nonce once and increment per tx
+        # Use a single nonce and increment for multiple transactions
         nonce = w3d.eth.get_transaction_count(warden_address)
 
         for evt in events:
@@ -78,19 +85,20 @@ def scan_blocks(chain, contract_info="contract_info.json"):
                 {
                     "from": warden_address,
                     "nonce": nonce,
-                    "gas": 500000,
+                    "gas": 500_000,
                     "gasPrice": w3d.eth.gas_price,
                 }
             )
-            nonce += 1  # increment for next tx
+            nonce += 1
 
             signed = warden_acct.sign_transaction(tx)
             w3d.eth.send_raw_transaction(signed.raw_transaction)
 
     if chain == "destination":
         end_block = w3d.eth.get_block_number()
-        start_block = max(0, end_block - 5)
+        start_block = max(0, end_block - 20)
 
+        # Find Unwrap events on the destination chain
         event_filter = dest_contract.events.Unwrap.create_filter(
             from_block=start_block,
             to_block=end_block,
@@ -111,7 +119,7 @@ def scan_blocks(chain, contract_info="contract_info.json"):
                 {
                     "from": warden_address,
                     "nonce": nonce,
-                    "gas": 500000,
+                    "gas": 500_000,
                     "gasPrice": w3s.eth.gas_price,
                 }
             )
